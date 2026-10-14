@@ -19,9 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-The tool design (READY-first flow, optimistic actions, screenshot fallback,
-plugin and skill layout) follows zhongerxin/iPhone-use, which is also released
-under the MIT License: https://github.com/zhongerxin/iPhone-use
