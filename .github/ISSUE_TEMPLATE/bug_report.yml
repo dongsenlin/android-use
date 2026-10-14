@@ -1,0 +1,63 @@
+name: 🐞 问题反馈 / Bug report
+description: 某个操作失败、报错或表现不对 / Something failed or behaved unexpectedly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！**请先删掉所有配对码（token）再提交。** 安全漏洞请走[私密报告](https://github.com/dongsenlin/android-use/security/advisories/new)，不要发在这里。
+        Thanks! **Remove any pairing token before submitting.** Report security issues privately instead.
+  - type: input
+    id: device
+    attributes:
+      label: 手机型号与系统 / Device & OS
+      placeholder: 例如 LG V60，Android 12；小米 14，HyperOS 2 (Android 15)
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: 版本 / Versions
+      description: 手机 App 版本（App 首页底部）和电脑端版本（android_doctor 里的 app_version / 服务端 VERSION）
+      placeholder: App 0.1.2 / 电脑端 0.1.2
+    validations:
+      required: true
+  - type: dropdown
+    id: host
+    attributes:
+      label: Agent 宿主 / Host
+      options:
+        - Codex
+        - Claude Code
+        - 其他 / Other
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: 发生了什么 / What happened
+      description: 你让 Agent 做什么、它实际做了什么、报了什么错（错误码如 phone_refused、blocked_by_overlay）
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤 / Steps to reproduce
+      placeholder: |
+        1. 打开 …
+        2. 让 Agent …
+        3. 出现 …
+  - type: textarea
+    id: doctor
+    attributes:
+      label: android_doctor 输出 / Doctor output
+      description: 在 Agent 里调用 android_doctor，或运行 `python3 server/android_use.py doctor`，把结果贴在这里（删掉配对码）
+      render: json
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 确认 / Checklist
+      options:
+        - label: 我已删除配对码等敏感信息 / I removed the pairing token
+          required: true
+        - label: 我用的是最新版本 / I am on the latest release

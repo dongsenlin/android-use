@@ -1,0 +1,19 @@
+name: 💡 功能建议 / Feature request
+description: 想让 Android Use 支持的新能力或改进 / A new capability or improvement
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 想解决什么问题 / Problem
+      description: 你想让 Agent 在手机上完成什么事，现在卡在哪里
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: 建议的做法 / Proposal
+  - type: input
+    id: device
+    attributes:
+      label: 相关机型或 App（可选）/ Device or app (optional)

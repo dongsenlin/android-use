@@ -2,6 +2,8 @@ name: test
 on:
   push:
   pull_request:
+permissions:
+  contents: read
 jobs:
   python:
     runs-on: ubuntu-latest
@@ -18,3 +20,20 @@ jobs:
       - name: Manifests are valid JSON
         run: |
           python -c "import json; [json.load(open(p)) for p in ('.agents/plugins/marketplace.json','packaging/codex/plugin.json','packaging/codex/mcp.json')]"
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Android SDK packages
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" > /dev/null
+      - name: Build APK (no Gradle)
+        run: sh app/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-use-apk
+          path: dist/*.apk
+          retention-days: 7

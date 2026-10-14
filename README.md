@@ -1,5 +1,11 @@
 # Android Use
 
+[![test](https://github.com/dongsenlin/android-use/actions/workflows/test.yml/badge.svg)](https://github.com/dongsenlin/android-use/actions/workflows/test.yml)
+[![release](https://img.shields.io/github/v/release/dongsenlin/android-use)](https://github.com/dongsenlin/android-use/releases/latest)
+[![license](https://img.shields.io/github/license/dongsenlin/android-use)](LICENSE)
+![Android 11+](https://img.shields.io/badge/Android-11%2B-3DDC84?logo=android&logoColor=white)
+![MCP](https://img.shields.io/badge/MCP-Codex%20%7C%20Claude%20Code-6D28D9)
+
 **中文** · [English](README.en.md)
 
 让 Codex、Claude Code 等 Agent 通过 **Wi‑Fi** 操作你的真实安卓手机：看截图、读界面文字、点击、长按、滑动、输入中文、按返回 / 主页、打开 App 和链接。
@@ -8,6 +14,8 @@
 - **电脑端**：一个 MCP 服务加两个技能，Codex 和 Claude Code 都能装。
 
 思路来自 [@quanruzhuoxiu 的帖子](https://x.com/quanruzhuoxiu/status/2110026589195076013)：在安卓上用 App 做纯视觉控制，再交给 Codex 无线遥控。工具的用法和插件结构参照 [iPhone Use](https://github.com/zhongerxin/iPhone-use)：先 READY 再操作，默认乐观执行，界面异常先看截图，只在关键结果上验收。
+
+![手机端 App 与 Agent 操作中的画面](docs/images/screenshots.png)
 
 ## 和 iPhone Use 的区别
 
@@ -22,12 +30,14 @@
 
 ## 工作原理
 
-```
-Codex / Claude ──MCP(stdio)──▶ server/android_use.py ──HTTP+配对码──▶ 手机 Android Use App
-                                                                    ├─ 无障碍截屏（Android 11+）
-                                                                    ├─ 读界面树（文字 / 描述 / id / 位置）
-                                                                    ├─ 手势：点、长按、滑、拖
-                                                                    └─ 写入文字、全局按键、启动 App
+```mermaid
+flowchart LR
+    A["Codex / Claude Code"] -- "MCP（stdio）" --> B["server/android_use.py<br/>电脑端，Python 标准库"]
+    B -- "Wi‑Fi · HTTP + 配对码" --> C["Android Use App<br/>手机端无障碍服务"]
+    C --> D["截屏（Android 11+）"]
+    C --> E["读界面树：文字 / 描述 / id / 位置"]
+    C --> F["手势：点、长按、滑、拖"]
+    C --> G["写入文字、全局按键、启动 App"]
 ```
 
 Agent 自己看截图来决定点哪里，也就是帖子说的"纯视觉"思路。界面树作为补充，用来读文字、精确定位按钮。
@@ -92,20 +102,53 @@ macOS 会把 Python 当成一个独立的 App 来管这个权限，经常处于�
 - 无法远程解锁手机。
 - 支付、银行等禁止截屏的页面截图会是黑的。
 
+## 兼容性
+
+| 设备 | 系统 | 结果 |
+| --- | --- | --- |
+| Pixel 6 模拟器（含模拟刘海屏） | Android 15 | ✅ 全部功能；13 步流程连跑 8 轮，104/104 步通过 |
+| LG V60（水滴刘海） | Android 12 | ✅ 截图、读界面、中文输入、批量操作、提示条避开刘海 |
+
+还没在小米、华为、OPPO、vivo、三星等国产或定制系统上测过。欢迎到 [Discussions](https://github.com/dongsenlin/android-use/discussions/categories/show-and-tell) 报告你的机型。
+
+## 常见问题
+
+- **需要 root、ADB 或开发者模式吗？** 都不需要，只要在系统设置里开启无障碍服务。
+- **能在外面用流量远程控制吗？** 不能。手机只接受局域网和本机的连接，手机和电脑要在同一个 Wi‑Fi。
+- **截图是黑的？** 支付、银行等页面禁止截屏，这是系统限制。Agent 会改读界面树，或者请你自己操作。
+- **用一阵就断开？** 多半是系统杀了后台服务。把 Android Use 的电池设为「无限制」，再重新开启无障碍。
+- **会被 App 检测到吗？** 无障碍服务是系统公开的能力，但个别 App 会限制自动化操作，请遵守各 App 的使用条款。
+
+## 反馈与参与
+
+- **使用问题、机型报告**：到 [Discussions](https://github.com/dongsenlin/android-use/discussions)。
+- **Bug 和功能建议**：提 [Issue](https://github.com/dongsenlin/android-use/issues/new/choose)，记得删掉配对码。
+- **安全漏洞**：请走[私密报告](https://github.com/dongsenlin/android-use/security/advisories/new)，见 [SECURITY.md](SECURITY.md)。
+- **想改代码**：先看 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+## 使用须知
+
+请只在你自己的手机和账号上使用。让 Agent 操作手机时，你仍然对它的每个操作负责：涉及付款、发送、删除的步骤，Agent 会先请你确认，请看清再同意。自动化操作可能违反部分 App 的条款，或触发风控。本项目按 MIT 许可证"原样"提供，不附带任何担保。
+
 ## 开发
 
 ```sh
-sh app/build.sh                               # 不用 Gradle，直接用 SDK 工具打 APK（JDK 17+、platforms;android-35、build-tools;35.0.0）
-python3 -m unittest discover -s tests -v      # 电脑端离线测试（用假手机）
+sh app/build.sh                               # 打包 APK，不用 Gradle
+python3 -m unittest discover -s tests -v      # 电脑端离线测试（假手机）
 python3 server/android_use.py call ready '{}' # 不经过 MCP 直接调用工具
 ```
+
+构建需要 JDK 17+，以及 Android SDK 的 `platforms;android-35` 和 `build-tools;35.0.0`。
 
 用模拟器做端到端测试时，可以用 adb 开启无障碍并转发端口：
 
 ```sh
-adb shell settings put secure enabled_accessibility_services com.dongsen.androiduse/com.dongsen.androiduse.AgentService
+adb shell settings put secure enabled_accessibility_services \
+  com.dongsen.androiduse/com.dongsen.androiduse.AgentService
 adb forward tcp:8787 tcp:8787   # 然后配对 url=127.0.0.1:8787
 ```
+
+完整步骤见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 目录结构：
 

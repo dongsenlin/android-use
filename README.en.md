@@ -1,5 +1,11 @@
 # Android Use
 
+[![test](https://github.com/dongsenlin/android-use/actions/workflows/test.yml/badge.svg)](https://github.com/dongsenlin/android-use/actions/workflows/test.yml)
+[![release](https://img.shields.io/github/v/release/dongsenlin/android-use)](https://github.com/dongsenlin/android-use/releases/latest)
+[![license](https://img.shields.io/github/license/dongsenlin/android-use)](LICENSE)
+![Android 11+](https://img.shields.io/badge/Android-11%2B-3DDC84?logo=android&logoColor=white)
+![MCP](https://img.shields.io/badge/MCP-Codex%20%7C%20Claude%20Code-6D28D9)
+
 [中文](README.md) · **English**
 
 Let AI agents such as Codex and Claude Code operate your real Android phone over **Wi‑Fi**: take screenshots, read on-screen text, tap, long-press, swipe, type (including Chinese and emoji), press Back/Home, and open apps or links.
@@ -9,14 +15,18 @@ Let AI agents such as Codex and Claude Code operate your real Android phone over
 
 The idea comes from [@quanruzhuoxiu's post](https://x.com/quanruzhuoxiu/status/2110026589195076013): an on-device app controls the phone visually, and Codex drives it wirelessly. The tool design and plugin layout follow [iPhone Use](https://github.com/zhongerxin/iPhone-use): confirm the phone is ready first, act optimistically, fall back to a screenshot when the UI looks off, and verify only the results that matter.
 
+![The phone app, and an agent at work](docs/images/screenshots.png)
+
 ## How it works
 
-```
-Codex / Claude ──MCP (stdio)──▶ server/android_use.py ──HTTP + pairing token──▶ Android Use app on the phone
-                                                                                ├─ screenshots via accessibility (Android 11+)
-                                                                                ├─ UI tree (text / description / id / bounds)
-                                                                                ├─ gestures: tap, long press, swipe, drag
-                                                                                └─ set text, global keys, launch apps
+```mermaid
+flowchart LR
+    A["Codex / Claude Code"] -- "MCP (stdio)" --> B["server/android_use.py<br/>computer side, Python stdlib"]
+    B -- "Wi‑Fi · HTTP + pairing token" --> C["Android Use app<br/>accessibility service"]
+    C --> D["Screenshots (Android 11+)"]
+    C --> E["UI tree: text / description / id / bounds"]
+    C --> F["Gestures: tap, long press, swipe, drag"]
+    C --> G["Set text, global keys, launch apps"]
 ```
 
 The agent looks at the screenshot to decide where to act. The UI tree supplements it for reading text and locating buttons precisely.
@@ -78,10 +88,30 @@ The first time the computer connects to the phone, macOS asks for Local Network 
 - The phone cannot be unlocked remotely.
 - Screens marked secure (payments, banking) capture as black.
 
+## Compatibility
+
+| Device | OS | Result |
+| --- | --- | --- |
+| Pixel 6 emulator (incl. emulated notch) | Android 15 | ✅ All features; 13-step flow × 8 runs, 104/104 steps passed |
+| LG V60 (waterdrop notch) | Android 12 | ✅ Screenshots, UI tree, Chinese input, batches, bar avoids the notch |
+
+Not yet tested on Xiaomi, Huawei, OPPO, vivo or Samsung skins. Reports are welcome in [Discussions](https://github.com/dongsenlin/android-use/discussions/categories/show-and-tell).
+
+## Feedback & contributing
+
+- **Questions and device reports**: use [Discussions](https://github.com/dongsenlin/android-use/discussions).
+- **Bugs and feature requests**: open an [issue](https://github.com/dongsenlin/android-use/issues/new/choose). Remove your pairing token first.
+- **Security vulnerabilities**: report them [privately](https://github.com/dongsenlin/android-use/security/advisories/new); see [SECURITY.md](SECURITY.md).
+- **Code changes**: read [CONTRIBUTING.md](CONTRIBUTING.md) first.
+
+## Responsible use
+
+Only use Android Use on your own phone and accounts. You remain responsible for what the agent does. Before any payment, message or deletion, the agent asks you to confirm, so read carefully before you agree. Automating some apps may violate their terms or trigger anti-abuse checks. Provided as-is under the MIT License, without warranty.
+
 ## Development
 
 ```sh
-sh app/build.sh                            # builds the APK without Gradle (JDK 17+, platforms;android-35, build-tools;35.0.0)
+sh app/build.sh                            # build the APK, no Gradle (JDK 17+)
 python3 -m unittest discover -s tests -v   # offline tests against a fake phone
 python3 server/android_use.py call ready '{}'
 ```
