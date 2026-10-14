@@ -1,0 +1,20 @@
+name: test
+on:
+  push:
+  pull_request:
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Offline tests (fake phone)
+        run: python -m unittest discover -s tests -v
+      - name: Manifests are valid JSON
+        run: |
+          python -c "import json; [json.load(open(p)) for p in ('.agents/plugins/marketplace.json','packaging/codex/plugin.json','packaging/codex/mcp.json')]"

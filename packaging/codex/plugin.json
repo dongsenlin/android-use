@@ -1,0 +1,24 @@
+{
+  "name": "android-use",
+  "version": "0.1.1",
+  "description": "让 Codex 通过 Wi‑Fi 操作你的安卓手机：截图、读界面、点击、滑动、输入中文、打开 App。手机端是一个无障碍服务 App，不需要 ADB 和开发者模式。",
+  "author": {
+    "name": "dongsen"
+  },
+  "license": "MIT",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Android Use",
+    "shortDescription": "Let agents use your Android",
+    "longDescription": "通过手机上的 Android Use App（无障碍服务 + 局域网接口）操作真实安卓手机：截图、读取控件文字、点击、长按、滑动、输入中文、按返回/主页、打开 App 和链接、边滑边找、批量执行。付款、发送等不可撤回操作先经用户确认。",
+    "developerName": "dongsen",
+    "category": "Productivity",
+    "logo": "./assets/icon.svg",
+    "composerIcon": "./assets/icon.svg",
+    "defaultPrompt": [
+      "帮我配对安卓手机并验证连接。",
+      "用安卓手机帮我完成任务，并核验关键结果。"
+    ]
+  }
+}

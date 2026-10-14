@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Android Use</string>
+    <string name="service_label">Android Use · Agent 遥控</string>
+    <string name="service_description">让你自己电脑上的 Codex、Claude 等 Agent 通过 Wi‑Fi 查看并操作这台手机：截屏、读取界面文字、点击、滑动、输入和打开 App。只有在 Android Use 里打开「允许 Agent 远程控制」并且电脑持有配对码时才会响应；手机顶部会显示控制提示条，点一下即可暂停。</string>
+</resources>
