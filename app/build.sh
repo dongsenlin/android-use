@@ -3,8 +3,8 @@
 # 需要：JDK 17+，Android SDK（platforms;android-35 与 build-tools;35.0.0）。
 set -eu
 
-VERSION_NAME=0.1.1
-VERSION_CODE=2
+VERSION_NAME=0.1.2
+VERSION_CODE=3
 API=35
 BUILD_TOOLS=35.0.0
 

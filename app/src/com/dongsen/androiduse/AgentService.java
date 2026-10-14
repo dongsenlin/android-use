@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
  * 再加上 App 里的"允许 Agent 远程控制"开关，才会在 Wi‑Fi 上开放带配对码的 HTTP 接口。
  */
 public class AgentService extends AccessibilityService implements SharedPreferences.OnSharedPreferenceChangeListener {
-    static final String VERSION = "0.1.1";
+    static final String VERSION = "0.1.2";
     static volatile AgentService instance;
 
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -323,6 +323,9 @@ public class AgentService extends AccessibilityService implements SharedPreferen
         caps.put("gestures", true);
         caps.put("ime_enter", Build.VERSION.SDK_INT >= 30);
         o.put("capabilities", caps);
+        // 提示条位置：截图和控件树里都看不到它，告诉 Agent 别往这里点
+        Rect pill = overlay == null ? null : overlay.pillRect();
+        if (pill != null) o.put("pill", new JSONArray().put(pill.left).put(pill.top).put(pill.width()).put(pill.height()));
         return o;
     }
 

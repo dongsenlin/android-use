@@ -30,7 +30,7 @@ cd android-use
 
 ### 1. Phone
 
-1. Download `android-use-0.1.1.apk` from [Releases](https://github.com/dongsenlin/android-use/releases/latest), or build it yourself with `sh app/build.sh`. Install it on the phone. Requires Android 11 or later.
+1. Download `android-use-0.1.2.apk` from [Releases](https://github.com/dongsenlin/android-use/releases/latest), or build it yourself with `sh app/build.sh`. Install it on the phone. Requires Android 11 or later.
    - To get the APK onto the phone, `python3 scripts/serve_apk.py` serves it on your LAN.
    - If Play Protect warns about an unknown app, choose "Install anyway".
 2. Open Android Use:
@@ -68,7 +68,7 @@ The first time the computer connects to the phone, macOS asks for Local Network 
 - **Two switches.** The user has to enable the accessibility service in system settings. Remote control is off by default.
 - **Pairing token.** A 120-bit random token is required on every request. Regenerating it on the phone revokes the old one immediately.
 - **LAN only.** The phone accepts connections only from LAN and loopback addresses.
-- **Visible and stoppable.** A purple bar on the phone shows when an agent is in control; tapping it pauses remote control. Agent gestures that land on the bar are rejected (`blocked_by_overlay`).
+- **Visible and stoppable.** A purple bar in the status bar shows when an agent is in control; tapping it pauses remote control. The bar avoids notches and punch-hole cameras and never covers app content. Agent gestures that land on it are rejected (`blocked_by_overlay`).
 - **No telemetry.** Screenshots stay on your computer in `~/.local/share/android-use/artifacts/` (owner-only, last 60 kept).
 - **Ground rules in the skills.** Payments, sending messages and deletions require explicit user confirmation. Passwords and verification codes are entered by the user.
 

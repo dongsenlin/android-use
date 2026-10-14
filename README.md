@@ -43,7 +43,7 @@ cd android-use
 
 ### 1. 手机
 
-1. 从 [Releases](https://github.com/dongsenlin/android-use/releases/latest) 下载 `android-use-0.1.1.apk`（也可以自己 `sh app/build.sh` 打包），传到手机上安装。可以在电脑上运行 `python3 scripts/serve_apk.py`，再用手机浏览器打开它打印的地址；用微信文件传输、网盘或 `adb install` 也行。需要 Android 11 及以上。
+1. 从 [Releases](https://github.com/dongsenlin/android-use/releases/latest) 下载 `android-use-0.1.2.apk`（也可以自己 `sh app/build.sh` 打包），传到手机上安装。可以在电脑上运行 `python3 scripts/serve_apk.py`，再用手机浏览器打开它打印的地址；用微信文件传输、网盘或 `adb install` 也行。需要 Android 11 及以上。
    - 安装时如果 Play 保护机制提示"未知应用"或"已屏蔽"，选「仍然安装」（App 没上架商店，所以会被提醒）。
 2. 打开 Android Use：
    - **① 去开启**：在无障碍里开启 Android Use。开关是灰的话，先点「应用信息」→ 右上角 ⋮ →「允许受限制的设置」。
@@ -82,7 +82,7 @@ macOS 会把 Python 当成一个独立的 App 来管这个权限，经常处于�
 - **两道开关**：无障碍服务要用户在系统设置里亲手开启；「允许 Agent 远程控制」默认关闭。
 - **配对码**：120 位随机数，每个请求都要带上。在手机上点「换一个配对码」，旧码立即失效。
 - **只接受局域网和本机连接**，不对公网开放。
-- **随时可停**：控制期间手机顶部有紫色提示条，点一下就暂停；Agent 每次点击的位置会闪一个光圈。提示条只给人点：Agent 的点按、滑动如果落在它上面会被拒绝（`blocked_by_overlay`），不会误把自己关掉。
+- **随时可停**：控制期间状态栏里有紫色提示条（会避开刘海和挖孔），点一下就暂停；Agent 每次点击的位置会闪一个光圈。提示条放在状态栏里，不会压住 App 的按钮。它只给人点：Agent 的点按、滑动如果落在它上面会被拒绝（`blocked_by_overlay`），不会误把自己关掉。
 - **不收集统计数据**。截图只保存在电脑本地的 `~/.local/share/android-use/artifacts/`（仅本人可读，保留最近 60 张）。
 - **技能里写明了底线**：付款、发送、删除等操作必须先经用户确认；密码和验证码由用户本人输入。
 

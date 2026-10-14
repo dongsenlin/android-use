@@ -1,6 +1,6 @@
 {
   "name": "android-use",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "让 Codex 通过 Wi‑Fi 操作你的安卓手机：截图、读界面、点击、滑动、输入中文、打开 App。手机端是一个无障碍服务 App，不需要 ADB 和开发者模式。",
   "author": {
     "name": "dongsen"

@@ -17,10 +17,12 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 PROTOCOLS = ("2025-06-18", "2025-03-26", "2024-11-05")
 DEFAULT_PORT = 8787
 SETTLE_SECONDS = 0.6
+FOCUS_WAIT_SECONDS = 2.0
+LAUNCH_WAIT_SECONDS = 5.0
 KEEP_ARTIFACTS = 60
 
 INSTRUCTIONS = (
@@ -495,7 +497,17 @@ class Runtime:
         params = {"text": text, "replace": replace, "submit": submit}
         if selector:
             params["selector"] = selector
-        return self.after(self.rpc("type", params, timeout=30), observe)
+        # 刚点完输入框时，页面跳转动画、键盘弹出还没完成：要么焦点还没到位（no_focused_field），
+        # 要么输入框已获焦点却暂时拒绝写入（input_failed）。两种情况都一个字没写进去，
+        # 短暂等待后重试没有副作用；batch 里"点输入框 → 输入"连着执行时最常见。
+        deadline = time.monotonic() + FOCUS_WAIT_SECONDS
+        while True:
+            try:
+                return self.after(self.rpc("type", params, timeout=30), observe)
+            except AUError as e:
+                if e.code not in ("no_focused_field", "input_failed") or time.monotonic() >= deadline:
+                    raise
+                time.sleep(0.25)
 
     def t_press_key(self, name, observe="none"):
         return self.after(self.rpc("key", {"name": name}), observe)
@@ -508,8 +520,24 @@ class Runtime:
             raise AUError("invalid_argument", "需要 package 或 name。")
         params = {"package": package} if package else {"name": name}
         res = self.rpc("launch", params)
-        if observe not in (None, "none"):
-            time.sleep(0.8)
+        # 等目标 App 真正到前台（冷启动常要 1~3 秒）：否则"页面稳定"会在桌面上提前成立，
+        # 紧接着的点按（batch 里最常见）就落在桌面上。
+        # 刚按过主页键时，新启动的 App 偶尔会被回桌面的动画盖到桌面后面、再也不出来：
+        # 2.5 秒还没到前台就再发一次启动（App 已在运行时只是切到前台，没有副作用）。
+        # 跳到别的包的 App 等满时限也照常继续，由下一步观察判断。
+        target = res.get("package")
+        res["foreground_verified"] = False
+        for attempt in range(2 if target else 0):
+            deadline = time.monotonic() + (2.5 if attempt == 0 else LAUNCH_WAIT_SECONDS)
+            while time.monotonic() < deadline:
+                if self.rpc("status").get("foreground") == target:
+                    res["foreground_verified"] = True
+                    break
+                time.sleep(0.2)
+            if res["foreground_verified"] or attempt == 1:
+                break
+            self.rpc("launch", {"package": target})
+            res["relaunched"] = True
         return self.after(res, observe)
 
     def t_open_url(self, url, observe="none"):

@@ -25,6 +25,9 @@ class FakePhone(http.server.BaseHTTPRequestHandler):
     calls = []
     screen_on = True
     locked = False
+    type_failures = []      # 依次弹出：每次 type 先返回这些错误码
+    foreground = "com.tencent.mm"
+    stuck_packages = set()  # 启动这些包时前台不变（模拟被回桌面动画盖住）
 
     def log_message(self, *a):
         pass
@@ -67,6 +70,13 @@ class FakePhone(http.server.BaseHTTPRequestHandler):
             "apps": {"count": 1, "apps": [{"label": "微信", "package": "com.tencent.mm"}]},
             "open_url": {"url": p.get("url")},
         }
+        if m == "type" and FakePhone.type_failures:
+            code = FakePhone.type_failures.pop(0)
+            return self.reply(200, {"ok": False, "error": {"code": code, "message": code}})
+        if m == "launch" and p.get("package") and p["package"] not in FakePhone.stuck_packages:
+            FakePhone.foreground = p["package"]
+        if m == "status":
+            results["status"]["foreground"] = FakePhone.foreground
         if m == "long_press" and p.get("x") == 13:
             return self.reply(200, {"ok": False, "error": {"code": "gesture_cancelled", "message": "cancelled"}})
         if m not in results and m != "long_press":
@@ -98,6 +108,7 @@ class ServerTest(unittest.TestCase):
         os.environ.pop("ANDROID_USE_TOKEN", None)
         FakePhone.calls.clear()
         FakePhone.screen_on, FakePhone.locked = True, False
+        FakePhone.type_failures, FakePhone.foreground, FakePhone.stuck_packages = [], "com.tencent.mm", set()
         au.SETTLE_SECONDS = 0
         self.rt = au.Runtime()
 
@@ -212,6 +223,52 @@ class ServerTest(unittest.TestCase):
             self.assertIn(cm.exception.code, ("phone_refused", "phone_unreachable"))
         finally:
             au._use_curl = False
+
+    def test_type_waits_for_focus_then_writes_once(self):
+        # 点完输入框立刻输入时，焦点和写入可能还没就绪：短暂重试，成功后只写一次
+        self.pair()
+        FakePhone.type_failures = ["no_focused_field", "input_failed"]
+        res, _ = self.rt.call("android_type_text", {"text": "你好"})
+        self.assertEqual(res["readback"], "你好")
+        self.assertEqual(sum(1 for m, _ in FakePhone.calls if m == "type"), 3)
+
+    def test_type_gives_up_after_focus_wait(self):
+        self.pair()
+        au.FOCUS_WAIT_SECONDS, saved = 0.3, au.FOCUS_WAIT_SECONDS
+        try:
+            FakePhone.type_failures = ["no_focused_field"] * 50
+            with self.assertRaises(au.AUError) as cm:
+                self.rt.call("android_type_text", {"text": "x"})
+            self.assertEqual(cm.exception.code, "no_focused_field")
+        finally:
+            au.FOCUS_WAIT_SECONDS = saved
+
+    def test_type_does_not_retry_other_errors(self):
+        self.pair()
+        FakePhone.type_failures = ["not_editable"]
+        with self.assertRaises(au.AUError):
+            self.rt.call("android_type_text", {"text": "x", "selector": {"label": "发送"}})
+        self.assertEqual(sum(1 for m, _ in FakePhone.calls if m == "type"), 1)
+
+    def test_launch_waits_for_foreground(self):
+        self.pair()
+        FakePhone.foreground = "com.android.launcher"
+        res, _ = self.rt.call("android_launch_app", {"package": "com.android.settings"})
+        self.assertTrue(res["foreground_verified"])
+        self.assertNotIn("relaunched", res)
+
+    def test_launch_relaunches_once_when_buried(self):
+        self.pair()
+        au.LAUNCH_WAIT_SECONDS, saved = 0.4, au.LAUNCH_WAIT_SECONDS
+        try:
+            FakePhone.foreground = "com.android.launcher"
+            FakePhone.stuck_packages = {"com.android.settings"}
+            res, _ = self.rt.call("android_launch_app", {"package": "com.android.settings"})
+            self.assertFalse(res["foreground_verified"])
+            self.assertTrue(res["relaunched"])
+            self.assertEqual(sum(1 for m, _ in FakePhone.calls if m == "launch"), 2)
+        finally:
+            au.LAUNCH_WAIT_SECONDS = saved
 
     def test_mcp_stdio_roundtrip(self):
         env = dict(os.environ, ANDROID_USE_URL=f"http://127.0.0.1:{self.port}", ANDROID_USE_TOKEN=TOKEN)
